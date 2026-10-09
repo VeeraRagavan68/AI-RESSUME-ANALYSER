@@ -1,4 +1,4 @@
-# 🎯 SkillSync AI — By Farise aml — Smart Resume Gap Analyzer
+# 🎯 SkillSync AI — By veera ragavan — Smart Resume Gap Analyzer
 
 **AI-powered resume analysis tool that identifies skill gaps against target job roles and generates personalized learning paths using RAG (Retrieval-Augmented Generation).**
 
