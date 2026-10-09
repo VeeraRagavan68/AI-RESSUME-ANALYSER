@@ -1,5 +1,5 @@
 """
-SkillSync AI — Farise aml — Smart Resume Gap Analyzer
+SkillSync AI — veera ragavan — Smart Resume Gap Analyzer
 Streamlit Application
 """
 import streamlit as st
@@ -15,7 +15,7 @@ from gap_analyzer import GapAnalyzer, ReportGenerator
 
 
 st.set_page_config(
-    page_title="SkillSync AI — Farise aml",
+    page_title="SkillSync AI — veera ragavan",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -81,7 +81,7 @@ def load_components():
 rag, analyzer = load_components()
 
 with st.sidebar:
-    st.markdown("# 🎯 SkillSync AI — Farise aml")
+    st.markdown("# 🎯 SkillSync AI — veera ragavan")
     st.markdown("**AI-Powered Resume Gap Analyzer**")
     st.markdown("---")
     st.markdown("### How it works")
@@ -93,9 +93,9 @@ with st.sidebar:
     5. 🎓 Get personalized learning path
     """)
     st.markdown("---")
-    st.markdown("Built by Farise aml ❤️")
+    st.markdown("Built by veera ragavan ❤️")
 
-st.markdown('<div class="main-header">🎯 SkillSync AI — Farise aml</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🎯 SkillSync AI — veera ragavan</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Upload your resume, choose a target role, and get an AI-powered skill gap analysis with a personalized learning roadmap.</div>', unsafe_allow_html=True)
 
 col1, col2 = st.columns([1, 1])
@@ -286,4 +286,4 @@ elif analyze_clicked and uploaded_file is None:
     st.warning("Please upload a resume file first!")
 
 st.markdown("---")
-st.caption("SkillSync AI — Farise aml • Built with Streamlit, Plotly, and RAG • For educational/workshop use")
+st.caption("SkillSync AI — veera ragavan • Built with Streamlit, Plotly, and RAG • For educational/workshop use")
