@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSync AI — Farise aml</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 8px; }
+        .header p { color: #6b7280; font-size: 1.1rem; }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
+
+        select, button, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            margin-top: 8px;
+            font-family: inherit;
+        }
+        button {
+            background: #111827;
+            color: white;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover { background: #374151; }
+
+        .score-circle {
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 20px auto;
+            font-size: 2.5rem; font-weight: 700;
+            position: relative;
+            background: white;
+        }
+        .score-circle::before {
+            content: ''; position: absolute;
+            inset: 0; border-radius: 50%;
+            padding: 8px;
+            background: conic-gradient(#3b82f6 var(--score), #e5e7eb var(--score));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background: #dbeafe; color: #1e40af;
+            padding: 4px 14px; border-radius: 20px;
+            font-size: 0.85rem; margin: 4px;
+            font-weight: 500;
+        }
+        .gap-item {
+            padding: 16px; border-radius: 10px;
+            margin: 8px 0; border-left: 4px solid;
+        }
+        .gap-must { background: #fef2f2; border-color: #ef4444; }
+        .gap-should { background: #fffbeb; border-color: #f59e0b; }
+        .gap-nice { background: #ecfdf5; border-color: #10b981; }
+
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 20px 0; }
+        .stat-box { text-align: center; padding: 16px; background: #f9fafb; border-radius: 12px; }
+        .stat-box .number { font-size: 1.8rem; font-weight: 700; color: #111827; }
+        .stat-box .label { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 SkillSync AI — Farise aml</h1>
+            <p>Smart Resume Gap Analyzer — By Farise aml</p>
+        </div>
+
+        <div class="card" id="input-section">
+            <h3>📄 Paste Resume Text</h3>
+            <textarea id="resumeText" rows="8" placeholder="Paste your resume content here... Try: 'Python, React, SQL, Docker, AWS, Machine Learning, Git'"></textarea>
+
+            <h3 style="margin-top:20px;">🎯 Target Role</h3>
+            <select id="targetRole">
+                <option value="software_engineer">Software Engineer (Mid-Level)</option>
+                <option value="data_scientist">Data Scientist (Mid-Level)</option>
+                <option value="ml_engineer">ML Engineer (Mid-Level)</option>
+                <option value="devops_engineer">DevOps Engineer (Mid-Level)</option>
+                <option value="product_manager">Product Manager (Mid-Level)</option>
+            </select>
+
+            <button onclick="analyze()">🔍 Analyze Resume</button>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="card fade-in">
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="number" id="scoreNum">0%</div>
+                        <div class="label">Match Score</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="readiness">-</div>
+                        <div class="label">Readiness</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="foundSkills">0</div>
+                        <div class="label">Skills Found</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="gapCount">0</div>
+                        <div class="label">Gaps</div>
+                    </div>
+                </div>
+
+                <div style="text-align:center; margin: 20px 0;">
+                    <div class="score-circle" id="scoreCircle" style="--score: 0deg;">0%</div>
+                </div>
+            </div>
+
+            <div class="card fade-in">
+                <h3>✅ Detected Skills</h3>
+                <div id="detectedSkills"></div>
+            </div>
+
+            <div class="card fade-in">
+                <h3>📉 Skill Gaps</h3>
+                <div id="skillGaps"></div>
+            </div>
+
+            <div class="card fade-in">
+                <h3>🎓 Recommended Learning Path</h3>
+                <div id="recommendations"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const jobRoles = {
+            software_engineer: {
+                title: "Software Engineer",
+                skills: [
+                    {name: "Python", cat: "Language", priority: "must", level: "advanced"},
+                    {name: "JavaScript/TypeScript", cat: "Language", priority: "must", level: "advanced"},
+                    {name: "System Design", cat: "Architecture", priority: "must", level: "intermediate"},
+                    {name: "Git & CI/CD", cat: "DevOps", priority: "must", level: "intermediate"},
+                    {name: "SQL & Databases", cat: "Data", priority: "must", level: "intermediate"},
+                    {name: "Docker & Kubernetes", cat: "DevOps", priority: "should", level: "intermediate"},
+                    {name: "Cloud Platforms", cat: "Cloud", priority: "should", level: "intermediate"},
+                    {name: "Microservices", cat: "Architecture", priority: "should", level: "intermediate"},
+                    {name: "Testing", cat: "Quality", priority: "must", level: "intermediate"},
+                    {name: "RESTful APIs", cat: "Backend", priority: "must", level: "advanced"},
+                    {name: "Data Structures", cat: "Fundamentals", priority: "must", level: "advanced"}
+                ]
+            },
+            data_scientist: {
+                title: "Data Scientist",
+                skills: [
+                    {name: "Python", cat: "Language", priority: "must", level: "advanced"},
+                    {name: "SQL", cat: "Data", priority: "must", level: "advanced"},
+                    {name: "Machine Learning", cat: "ML", priority: "must", level: "advanced"},
+                    {name: "Statistics", cat: "Math", priority: "must", level: "advanced"},
+                    {name: "Pandas & NumPy", cat: "Tools", priority: "must", level: "advanced"},
+                    {name: "Scikit-learn", cat: "ML", priority: "must", level: "advanced"},
+                    {name: "Data Visualization", cat: "Viz", priority: "must", level: "intermediate"},
+                    {name: "Deep Learning", cat: "ML", priority: "should", level: "intermediate"},
+                    {name: "Feature Engineering", cat: "ML", priority: "must", level: "intermediate"}
+                ]
+            },
+            ml_engineer: {
+                title: "ML Engineer",
+                skills: [
+                    {name: "Python", cat: "Language", priority: "must", level: "advanced"},
+                    {name: "Machine Learning", cat: "ML", priority: "must", level: "advanced"},
+                    {name: "Docker & Kubernetes", cat: "DevOps", priority: "must", level: "advanced"},
+                    {name: "MLOps", cat: "ML", priority: "must", level: "advanced"},
+                    {name: "TensorFlow/PyTorch", cat: "ML", priority: "must", level: "advanced"},
+                    {name: "Cloud Platforms", cat: "Cloud", priority: "must", level: "intermediate"},
+                    {name: "SQL & Data Pipelines", cat: "Data", priority: "must", level: "intermediate"},
+                    {name: "Model Monitoring", cat: "ML", priority: "must", level: "intermediate"}
+                ]
+            },
+            devops_engineer: {
+                title: "DevOps Engineer",
+                skills: [
+                    {name: "Linux Administration", cat: "Systems", priority: "must", level: "advanced"},
+                    {name: "Docker & Kubernetes", cat: "DevOps", priority: "must", level: "advanced"},
+                    {name: "CI/CD", cat: "DevOps", priority: "must", level: "advanced"},
+                    {name: "Infrastructure as Code", cat: "DevOps", priority: "must", level: "advanced"},
+                    {name: "Cloud Platforms", cat: "Cloud", priority: "must", level: "advanced"},
+                    {name: "Scripting", cat: "Language", priority: "must", level: "intermediate"},
+                    {name: "Monitoring", cat: "DevOps", priority: "must", level: "intermediate"},
+                    {name: "Git", cat: "DevOps", priority: "must", level: "advanced"}
+                ]
+            },
+            product_manager: {
+                title: "Product Manager",
+                skills: [
+                    {name: "Product Strategy", cat: "Strategy", priority: "must", level: "advanced"},
+                    {name: "User Research", cat: "UX", priority: "must", level: "intermediate"},
+                    {name: "Data Analytics", cat: "Analytics", priority: "must", level: "intermediate"},
+                    {name: "Agile/Scrum", cat: "Process", priority: "must", level: "advanced"},
+                    {name: "Roadmapping", cat: "Strategy", priority: "must", level: "advanced"},
+                    {name: "Stakeholder Management", cat: "Leadership", priority: "must", level: "advanced"},
+                    {name: "Technical Literacy", cat: "Tech", priority: "must", level: "intermediate"}
+                ]
+            }
+        };
+
+        const courses = {
+            "Python": ["Python for Everybody (Coursera)", "Complete Python Bootcamp (Udemy)"],
+            "JavaScript/TypeScript": ["The Complete JavaScript Course (Udemy)", "TypeScript Fundamentals (Frontend Masters)"],
+            "System Design": ["System Design Interview (ByteByteGo)", "Designing Data-Intensive Applications (Book)"],
+            "Git & CI/CD": ["Git Complete (Udemy)", "GitHub Actions Certification"],
+            "SQL & Databases": ["SQL for Data Science (Coursera)", "Database Design (freeCodeCamp)"],
+            "Docker & Kubernetes": ["Docker & Kubernetes Practical Guide (Udemy)", "CKAD Certification"],
+            "Cloud Platforms": ["AWS Solutions Architect (Udemy)", "Azure Fundamentals (Microsoft)"],
+            "Microservices": ["Microservices with Node.js (Udemy)", "Building Microservices (Book)"],
+            "Testing": ["Testing JavaScript (Kent C. Dodds)", "PyTest for Python (freeCodeCamp)"],
+            "RESTful APIs": ["REST API Design (API Academy)", "FastAPI Modern Python (TestDriven.io)"],
+            "Data Structures": ["NeetCode 150 (Free)", "Cracking the Coding Interview (Book)"],
+            "Machine Learning": ["ML Specialization (Andrew Ng)", "Hands-On ML (Book)"],
+            "Statistics": ["Statistics 110 (Harvard)", "Practical Statistics (Book)"],
+            "Pandas & NumPy": ["Python for Data Analysis (Book)", "Pandas Documentation"],
+            "Scikit-learn": ["Scikit-learn Official Tutorial"],
+            "Data Visualization": ["Storytelling with Data (Book)", "Python Data Viz (Udemy)"],
+            "Deep Learning": ["Deep Learning Specialization (Coursera)", "PyTorch Tutorials"],
+            "MLOps": ["Made With ML (Goku Mohandas)", "MLOps Specialization (DeepLearning.AI)"],
+            "Linux Administration": ["Linux Foundation Certified SysAdmin", "The Linux Command Line (Book)"],
+            "CI/CD": ["GitHub Actions Certification", "Jenkins Documentation"],
+            "Infrastructure as Code": ["Terraform Up & Running (Book)", "HashiCorp Certification"],
+            "Monitoring": ["Prometheus Documentation", "Grafana Fundamentals"],
+            "Product Strategy": ["Inspired (Marty Cagan)", "Product Management 101 (Lenny)"],
+            "User Research": ["The Mom Test (Book)", "NN/g Articles"],
+            "Agile/Scrum": ["Agile with Atlassian Jira", "Professional Scrum Master I"],
+            "Roadmapping": ["Product Roadmaps Relaunched (Book)"],
+            "Stakeholder Management": ["Radical Candor (Book)"],
+            "Technical Literacy": ["Cracking the PM Interview (Book)"]
+        };
+
+        function analyze() {
+            const text = document.getElementById('resumeText').value.toLowerCase();
+            const roleKey = document.getElementById('targetRole').value;
+            const role = jobRoles[roleKey];
+
+            if (!text.trim()) {
+                alert("Please paste your resume text first!");
+                return;
+            }
+
+            const found = [];
+            const foundNames = new Set();
+            role.skills.forEach(skill => {
+                const name = skill.name.toLowerCase();
+                const aliases = {
+                    "python": ["python", "py"],
+                    "javascript/typescript": ["javascript", "typescript", "js", "ts"],
+                    "sql & databases": ["sql", "mysql", "postgresql", "database"],
+                    "docker & kubernetes": ["docker", "kubernetes", "k8s"],
+                    "cloud platforms": ["aws", "gcp", "azure", "cloud"],
+                    "git & ci/cd": ["git", "github", "gitlab", "ci/cd"],
+                    "data structures": ["data structures", "algorithms", "dsa"],
+                    "pandas & numpy": ["pandas", "numpy"],
+                    "machine learning": ["machine learning", "ml"],
+                    "deep learning": ["deep learning", "neural networks"],
+                    "linux administration": ["linux", "ubuntu", "unix"],
+                    "ci/cd": ["jenkins", "github actions", "gitlab ci"],
+                    "infrastructure as code": ["terraform", "ansible", "iac"],
+                    "monitoring": ["prometheus", "grafana", "monitoring"],
+                    "product strategy": ["product strategy", "product vision"],
+                    "user research": ["user research", "ux research"],
+                    "agile/scrum": ["agile", "scrum", "kanban"],
+                    "stakeholder management": ["stakeholder", "cross-functional"]
+                };
+
+                const checks = aliases[skill.name.toLowerCase()] || [name];
+                const matched = checks.some(c => text.includes(c));
+
+                if (matched && !foundNames.has(skill.name)) {
+                    found.push(skill);
+                    foundNames.add(skill.name);
+                }
+            });
+
+            const mustTotal = role.skills.filter(s => s.priority === 'must').length;
+            const mustFound = found.filter(s => s.priority === 'must').length;
+            const shouldTotal = role.skills.filter(s => s.priority === 'should').length;
+            const shouldFound = found.filter(s => s.priority === 'should').length;
+
+            const score = Math.round(((mustFound / mustTotal) * 70 + (shouldFound / (shouldTotal || 1)) * 30));
+
+            let readiness = "Not Ready";
+            if (score >= 85) readiness = "Strong Fit";
+            else if (score >= 70) readiness = "Ready";
+            else if (score >= 50) readiness = "Junior Ready";
+
+            const gaps = role.skills.filter(s => !foundNames.has(s.name));
+            const mustGaps = gaps.filter(g => g.priority === 'must');
+            const shouldGaps = gaps.filter(g => g.priority === 'should');
+
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('scoreNum').textContent = score + '%';
+            document.getElementById('readiness').textContent = readiness;
+            document.getElementById('foundSkills').textContent = found.length;
+            document.getElementById('gapCount').textContent = gaps.length;
+
+            const deg = (score / 100) * 360;
+            document.getElementById('scoreCircle').style.setProperty('--score', deg + 'deg');
+            document.getElementById('scoreCircle').textContent = score + '%';
+
+            const skillsHtml = found.map(s => `<span class="skill-tag">${s.name}</span>`).join('');
+            document.getElementById('detectedSkills').innerHTML = skillsHtml || '<p style="color:#6b7280;">No matching skills found</p>';
+
+            let gapsHtml = '';
+            if (mustGaps.length) {
+                gapsHtml += '<p style="font-weight:600; margin: 12px 0 8px;">🔴 Must-Have</p>';
+                mustGaps.forEach(g => {
+                    gapsHtml += `<div class="gap-item gap-must"><b>${g.name}</b> (${g.cat})<br>Target: ${g.level}</div>`;
+                });
+            }
+            if (shouldGaps.length) {
+                gapsHtml += '<p style="font-weight:600; margin: 12px 0 8px;">🟡 Should-Have</p>';
+                shouldGaps.forEach(g => {
+                    gapsHtml += `<div class="gap-item gap-should"><b>${g.name}</b> (${g.cat})<br>Target: ${g.level}</div>`;
+                });
+            }
+            document.getElementById('skillGaps').innerHTML = gapsHtml;
+
+            let recHtml = '';
+            [...mustGaps, ...shouldGaps].slice(0, 6).forEach((g, i) => {
+                const recs = courses[g.name] || [`Search for ${g.name} courses online`];
+                recHtml += `
+                    <div style="padding: 16px; background: #f9fafb; border-radius: 10px; margin: 8px 0;">
+                        <b>${i+1}. ${g.name}</b> <span style="color: #6b7280; font-size: 0.9rem;">(${g.priority})</span>
+                        <ul style="margin-top: 8px; padding-left: 20px;">
+                            ${recs.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+            document.getElementById('recommendations').innerHTML = recHtml;
+
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
